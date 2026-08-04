@@ -1,1 +1,1 @@
-# RigShift-Moderation
+# Rig Shift Discord Moderation BOT 

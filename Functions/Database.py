@@ -11,7 +11,7 @@ async def RegisterStaff(StaffID: int) -> bool:
     return True
   
 
-async def GetStaffStat(StaffID: int, Stat: str) -> bool :
+async def GetStaffStat(StaffID: int, Stat: str) -> bool | tuple:
   with sql.connect("RigShift.db") as con:
     cursor = con.cursor()
 
@@ -22,7 +22,7 @@ async def GetStaffStat(StaffID: int, Stat: str) -> bool :
     data = cursor.fetchone()
     
     if not data:
-      return False, 0
+      return False, (0,0,0)
     return True, data
       
       
@@ -53,3 +53,6 @@ async def IncreaseStaffStat(
       f"UPDATE StaffStats SET {Stat} = {Stat} + 1 WHERE userID = ? ", (StaffID,)
     )
     con.commit()
+
+
+

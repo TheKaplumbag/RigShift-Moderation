@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 from Functions.Database import AddBan,IncreaseStaffStat,RegisterStaff,GetStaffStat
 from config import StaffRoles, TestServerRoles
+from Functions.Utilities import IsValidID, GetProfileLink, GetRBXUserData
 import os
 from dotenv import load_dotenv
 
@@ -34,45 +35,68 @@ class MainCommands(commands.Cog):
     ban_duration: str = "N/A"
   ):
     await interaction.response.defer(thinking=True)
-
-    evidence = attach_evidence.url if attach_evidence else (link_evidence or "No evidence provided!")
     
-    response: bool = await AddBan(
-      OffenderId=offender_id, 
-      ModeratorId=interaction.user.id, 
-      Type=ban_type.value, 
-      Reason=ban_reason, 
-      Duration=ban_duration
-    )
-    
-    if response == True:
-      log_channelId = int(os.getenv(key=ban_type.value + "logChannel"))
-      log_channel: TextChannel = self.bot.get_channel(log_channelId)
-
-      embed = discord.Embed(
-      title="🔨 RIG SHIFT BAN LOG",
-      description="A new ban log has been sent!",
-      color=discord.Color.red()
-    )
+    isvalid = IsValidID(offender_id)
+    if isvalid:
+      RBXProfile = GetProfileLink(offender_id)
+      evidence = attach_evidence.url if attach_evidence else (link_evidence or "No evidence provided!")
       
-    embed.add_field(name="Offender ID", value=f"`{offender_id}`", inline=True)
-    embed.add_field(name="Ban Type", value=ban_type.name, inline=True)
-    embed.add_field(name="Duration", value=ban_duration, inline=True)
-    embed.add_field(name="Reason", value=ban_reason, inline=False)
-    embed.add_field(name="Evidence", value=evidence, inline=False)
-    embed.set_footer(text=f"Logged by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+      response: bool = await AddBan(
+        OffenderId=offender_id, 
+        ModeratorId=interaction.user.id, 
+        Type=ban_type.value, 
+        Reason=ban_reason, 
+        Duration=ban_duration
+      )
+      
+      if response == True:
+        log_channelId = int(os.getenv(key=ban_type.value + "logChannel"))
+        log_channel: TextChannel = self.bot.get_channel(log_channelId)
+  
+        embed = discord.Embed(
+        title="🔨 RIG SHIFT BAN LOG",
+        description="A new ban log has been sent!",
+        color=discord.Color.red()
+      )
+      data = GetRBXUserData(offender_id)
+      embed.add_field(name="Offender Name", value=f"[{data.get("name")} @{data.get("displayname")}]({RBXProfile})")
+      embed.add_field(name="Offender ID", value=f"`{offender_id}`", inline=True)
+      embed.add_field(name="Ban Type", value=ban_type.name, inline=True)
+      embed.add_field(name="Duration", value=ban_duration, inline=True)
+      embed.add_field(name="Reason", value=ban_reason, inline=False)
+      embed.add_field(name="Evidence", value=evidence, inline=False)
+      embed.set_footer(text=f"Logged by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+  
+      if attach_evidence and attach_evidence.content_type and attach_evidence.content_type.startswith("image/"):
+        embed.set_image(url=attach_evidence.url)
+      
+        await log_channel.send(content="<@1135915813346492468> ", embed=embed)
+      
+      elif attach_evidence and attach_evidence.content_type and attach_evidence.content_type.startswith("video/"):
+        videofile = await attach_evidence.to_file()
+        await log_channel.send(content=f"<@1135915813346492468>", embed=embed)
+        await log_channel.send(file=videofile)
+      else:
+        await log_channel.send(content=f"<@1135915813346492468", embed=embed)
+        
 
-    if attach_evidence and attach_evidence.content_type and attach_evidence.content_type.startswith("image/"):
-      embed.set_image(url=attach_evidence.url)
-    stat : str = ban_type.value + "Count"
-    isRegistered = await IncreaseStaffStat(interaction.user.id, stat)
-    if isRegistered == False:
-      await RegisterStaff(interaction.user.id)
-      await IncreaseStaffStat(interaction.user.id, stat)
-    await log_channel.send(content="<@1135915813346492468> ", embed=embed)
+      
+      stat : str = ban_type.value + "Count"
+      isRegistered = await IncreaseStaffStat(interaction.user.id, stat)
+      if isRegistered == False:
+        await RegisterStaff(interaction.user.id)
+        await IncreaseStaffStat(interaction.user.id, stat)
+      
+      await interaction.followup.send(content=f"Success!", ephemeral=True)
+    else: 
+      await interaction.followup.send("PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER!")
+
+
+
+
+
+
     
-    await interaction.followup.send(content=f"Success!")
-
 
   @staff_group.command(name="stats", description="check your ban stats")
   @app_commands.checks.has_any_role(*TestServerRoles)
@@ -104,6 +128,18 @@ class MainCommands(commands.Cog):
         await interaction.followup.send(f"Stats:\n\n {formatted}")
     else:
       await interaction.followup.send("This user does not have required staff roles.")
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 async def setup(bot: commands.Bot):

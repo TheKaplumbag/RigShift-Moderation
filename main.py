@@ -1,9 +1,10 @@
 import discord
 from discord import app_commands
-from discord.ext import commands
+from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
 import sqlite3 as sql
+import random
 
 # INITIALIZING DATABASE
 con = sql.connect("RigShift.db")
@@ -43,13 +44,35 @@ class Bot(commands.Bot):
   def __init__(self):
     Intents = discord.Intents.all()
     Intents.guilds = True
-    
+
     super().__init__(command_prefix=commands.when_mentioned_or("!"), intents=Intents,
     help_command=None,
     activity=discord.Game(name = "Staff tools") , proxy=PROXY)
 
+
+  Status_list = [
+    "🔨 Banning bad ppl!",
+    "👀 Big bro is ALWAYS watching",
+    "👨‍💼 Checking staff members!",
+    "📃 Logging bans!",
+    "🔥 Im the tuffest bot EVER!",
+    "I ❤️ Free Animate [BETA]"
+  ]
+  
+  @tasks.loop(seconds=3.5)
+  async def change_status(self):
+    new_status : str = random.choice(self.Status_list)
+    await bot.change_presence(
+      status=discord.Status.online,
+      activity=discord.CustomActivity(name=new_status),
+    )
+
+
   async def setup_hook(self):
-    await self.load_extension("Cogs.MainCog")
+
+    self.change_status.start()
+    
+    await self.load_extension("Cogs.StaffCog")
 
     
     await self.tree.sync()
@@ -62,6 +85,11 @@ class Bot(commands.Bot):
       await self.tree.sync(guild=guild)
       
       print(f"Synced commands to DEV_GUILD={DEV_GUILD}")
+
+  @change_status.before_loop
+  async def before_change_status(self):
+    await self.wait_until_ready()
+    
 
 if __name__=="__main__":
   if not TOKEN:

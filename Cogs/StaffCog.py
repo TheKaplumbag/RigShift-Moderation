@@ -1,0 +1,143 @@
+import discord
+from discord import app_commands
+from discord.ext import commands
+from Functions.Database import AddBan,IncreaseStaffStat,RegisterStaff,GetStaffStat
+from config import StaffRoles, TestServerRoles
+from Functions.Utilities import IsValidID, GetProfileLink, GetRBXUserData
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class MainCommands(commands.Cog):
+  def __init__(self, bot: commands.Bot):
+    self.bot = bot
+
+  staff_group = app_commands.Group(name="staff", description="staff only commands")
+
+  
+  @staff_group.command(name="ban-log", description="Log ban")
+  @app_commands.checks.has_any_role(*TestServerRoles)
+  @app_commands.checks.cooldown(rate=3, per=60.0, key=lambda i: i.user.id)
+  @app_commands.choices(ban_type=[
+    app_commands.Choice(name="Permanent", value="Permaban"),
+    app_commands.Choice(name="Temporary", value="Tempban"),
+    app_commands.Choice(name="Server", value="Serverban")
+  ])
+  async def BanLog(
+    self, 
+    interaction: discord.Interaction, 
+    offender_id: int, 
+    ban_type: app_commands.Choice[str], 
+    ban_reason: str, 
+    attach_evidence: discord.Attachment = None,
+    link_evidence: str = None,
+    ban_duration: str = "N/A"
+  ):
+    await interaction.response.defer(thinking=True)
+    
+    isvalid = IsValidID(offender_id)
+    if isvalid:
+      RBXProfile = GetProfileLink(offender_id)
+      evidence = attach_evidence.url if attach_evidence else (link_evidence or "No evidence provided!")
+      
+      response: bool = await AddBan(
+        OffenderId=offender_id, 
+        ModeratorId=interaction.user.id, 
+        Type=ban_type.value, 
+        Reason=ban_reason, 
+        Duration=ban_duration
+      )
+      
+      if response == True:
+        log_channelId = int(os.getenv(key=ban_type.value + "logChannel"))
+        log_channel: TextChannel = self.bot.get_channel(log_channelId)
+  
+        embed = discord.Embed(
+        title="🔨 RIG SHIFT BAN LOG",
+        description="A new ban log has been sent!",
+        color=discord.Color.red()
+      )
+      data = GetRBXUserData(offender_id)
+      embed.add_field(name="Offender Name", value=f"[{data.get("name")} @{data.get("displayname")}]({RBXProfile})")
+      embed.add_field(name="Offender ID", value=f"`{offender_id}`", inline=True)
+      embed.add_field(name="Ban Type", value=ban_type.name, inline=True)
+      embed.add_field(name="Duration", value=ban_duration, inline=True)
+      embed.add_field(name="Reason", value=ban_reason, inline=False)
+      embed.add_field(name="Evidence", value=evidence, inline=False)
+      embed.set_footer(text=f"Logged by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+  
+      if attach_evidence and attach_evidence.content_type and attach_evidence.content_type.startswith("image/"):
+        embed.set_image(url=attach_evidence.url)
+      
+        await log_channel.send(content="<@1135915813346492468> ", embed=embed)
+      
+      elif attach_evidence and attach_evidence.content_type and attach_evidence.content_type.startswith("video/"):
+        videofile = await attach_evidence.to_file()
+        await log_channel.send(content=f"<@1135915813346492468>", embed=embed)
+        await log_channel.send(file=videofile)
+      else:
+        await log_channel.send(content=f"<@1135915813346492468", embed=embed)
+        
+
+      
+      stat : str = ban_type.value + "Count"
+      isRegistered = await IncreaseStaffStat(interaction.user.id, stat)
+      if isRegistered == False:
+        await RegisterStaff(interaction.user.id)
+        await IncreaseStaffStat(interaction.user.id, stat)
+        
+      await interaction.followup.send(content=f"Success!", ephemeral=True)
+    else: 
+      await interaction.followup.send("PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER!")
+
+
+# TODO: Handle errors
+    
+
+  @staff_group.command(name="stats", description="check your ban stats")
+  @app_commands.checks.has_any_role(*TestServerRoles)
+  @app_commands.choices(which_stat=[
+    app_commands.Choice(name="Permanentban Count", value="PermabanCount"),
+    app_commands.Choice(name="Temporaryban Count", value="TempbanCount"),
+    app_commands.Choice(name="Serverban Count", value="ServerbanCount"),
+    app_commands.Choice(name="All", value="*")
+  ])
+  async def StaffBanStats(
+    self, 
+    interaction: discord.Interaction, 
+    who: discord.Member, 
+    which_stat: app_commands.Choice[str]
+  ):
+    await interaction.response.defer(thinking=True)
+  
+    if who.top_role.id in TestServerRoles:
+      isRegistered, data = await GetStaffStat(StaffID=who.id, Stat=which_stat.value)
+      formatted = ""
+      if len(data) > 1:
+        formatted = f"Staff Name: {who.mention}\n Staff Rank: {who.top_role} \n Temporaryban Count: {data[0]}\n Permanentban Count: {data[1]}\n Serverban Count: {data[2]} "
+      else:
+        formatted = f"Staff Name: {who.mention}\n Staff Rank: {who.top_role} \n  {which_stat.name}: {data[0]}"
+      if not isRegistered:
+        await RegisterStaff(StaffID=who.id)
+        await interaction.followup.send("Staff member was not registered. Registered now, please run the command again!")
+      else:
+        await interaction.followup.send(f"Stats:\n\n {formatted}")
+    else:
+      await interaction.followup.send("This user does not have required staff roles.")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async def setup(bot: commands.Bot):
+  await bot.add_cog(MainCommands(bot))

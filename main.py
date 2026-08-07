@@ -54,10 +54,10 @@ class Bot(commands.Bot):
 
   
   
-  @tasks.loop(seconds=2.5)
+  @tasks.loop(seconds=15)
   async def change_status(self):
     new_status : str = random.choice(Status_list)
-    await bot.change_presence(
+    await self.change_presence(
       status=discord.Status.online,
       activity=discord.CustomActivity(name=new_status),
     )

@@ -7,11 +7,11 @@ TestServerRoles = [
 ]
 
 StaffRoles  = [
-  "Creator",
-  "Head Admin",
-  "Admin",
-  "Game Moderator",
-  "Trial Moderator"
+  1394167332523343892,
+  1400966225454170123,
+  1394158472941277204,
+  1394167761269428344,
+  1514002161401335959
 ]
 
 BotEmojis = {

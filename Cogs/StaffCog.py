@@ -84,7 +84,7 @@ class StaffCommands(commands.Cog):
         color=discord.Color.red()
       )
       data = GetRBXUserData(offender_id)
-      embed.add_field(name="Offender Name", value=f"[{data.get("name")} @{data.get("displayname")}]({RBXProfile})")
+      embed.add_field(name="Offender Name", value=f"[{data.get('name')} @{data.get('displayname')}]({RBXProfile})")
       embed.add_field(name="Offender ID", value=f"`{offender_id}`", inline=True)
       embed.add_field(name="Ban Type", value=ban_type.name, inline=True)
       embed.add_field(name="Duration", value=ban_duration, inline=True)

@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from Functions.Database import AddBan,IncreaseStaffStat,RegisterStaff,GetStaffStat, IncreaseOffenderStat, RegisterOffender, GetOffenderStat
-from config import StaffRoles, TestServerRoles, BotEmojis
+from config import TestServerRoles, StaffRoles, BotEmojis
 from Functions.Utilities import IsValidID, GetProfileLink, GetRBXUserData
 import os
 from dotenv import load_dotenv
@@ -27,89 +27,127 @@ class StaffCommands(commands.Cog):
     app_commands.Choice(name="Temporary", value="Tempban"),
     app_commands.Choice(name="Server", value="Serverban")
   ])
+  @app_commands.describe(
+    ban_duration = "Duration of ban",
+    
+  )
   async def BanLog(
-    self, 
-    interaction: discord.Interaction, 
-    offender_id: int, 
-    ban_type: app_commands.Choice[str], 
-    ban_reason: str, 
+    self,
+    interaction: discord.Interaction,
+    offender_id: int,
+    ban_type: app_commands.Choice[str],
+    ban_reason: str,
+    ban_duration: str = "N/A",
     attach_evidence: discord.Attachment = None,
-    link_evidence: str = None,
-    ban_duration: str = "N/A"
+    attach_evidence_two: discord.Attachment = None,
+    link_evidence: str = None
   ):
     await interaction.response.defer(thinking=True)
-    if ban_type.value == "Tempban" and ban_duration == "N/A":
-       
-      await interaction.followup.send(f"<a:rejected:{denyEmojiID}> YOU CAN'T LOG Temporary Ban without specifying a duration!")
-      return
-      
-    if attach_evidence == None and link_evidence == None:
-       
-      await interaction.followup.send(f"<a:rejected:{denyEmojiID}> YOU MUST AT LEAST PROVIDE ONE EVIDENCE", ephemeral=True)
-      return
-      
-    isvalid = IsValidID(offender_id)
-    if isvalid:
-      RBXProfile = GetProfileLink(offender_id)
-      evidence = attach_evidence.url if attach_evidence else (link_evidence or "No evidence provided!")
-      
-      response: bool = await AddBan(
-        OffenderId=offender_id, 
-        ModeratorId=interaction.user.id, 
-        Type=ban_type.value, 
-        Reason=ban_reason, 
-        Duration=ban_duration
-      )
-      stat : str = ban_type.value + "Count"
-      isStaffRegistered, staffStat = await GetStaffStat(interaction.user.id, stat)
-      isOffenderReg, offenderStat = await GetOffenderStat(offender_id, stat)
-      if isOffenderReg == False:
-        await RegisterOffender(offender_id)
-        await IncreaseOffenderStat(offender_id, stat)
-      else:
-        await IncreaseOffenderStat(offender_id, stat)
-      if isStaffRegistered == False:
-        await RegisterStaff(interaction.user.id)
-        await IncreaseStaffStat(interaction.user.id, stat)
-      else:
-        await IncreaseStaffStat(interaction.user.id, stat)
 
-      if response == True:
-        log_channelId = int(os.getenv(key=ban_type.value + "logChannel"))
-        log_channel: TextChannel = self.bot.get_channel(log_channelId)
-  
-        embed = discord.Embed(
-        title="🔨 RIG SHIFT BAN LOG",
-        description="A new ban log has been sent!",
-        color=discord.Color.red()
-      )
-      data = GetRBXUserData(offender_id)
-      embed.add_field(name="Offender Name", value=f"[{data.get('name')} @{data.get('displayname')}]({RBXProfile})")
-      embed.add_field(name="Offender ID", value=f"`{offender_id}`", inline=True)
-      embed.add_field(name="Ban Type", value=ban_type.name, inline=True)
-      embed.add_field(name="Duration", value=ban_duration, inline=True)
-      embed.add_field(name="Reason", value=ban_reason, inline=False)
-      embed.add_field(name="Evidence", value=evidence, inline=False)
-      embed.set_footer(text=f"Logged by {interaction.user}", icon_url=interaction.user.display_avatar.url)
-  
-      if attach_evidence and attach_evidence.content_type and attach_evidence.content_type.startswith("image/"):
-        embed.set_image(url=attach_evidence.url)
-      
-        await log_channel.send(content="<@1135915813346492468>", embed=embed)
-      
-      elif attach_evidence and attach_evidence.content_type and attach_evidence.content_type.startswith("video/"):
-        videofile = await attach_evidence.to_file()
-        await log_channel.send(content=f"<@1135915813346492468>", embed=embed)
-        await log_channel.send(file=videofile)
+    try:
+      if ban_type.value == "Tempban" and ban_duration == "N/A":
+        await interaction.followup.send(content=f"<a:rejected:{denyEmojiID}> YOU CAN'T LOG Temporary Ban without specifying a duration!")
+        return
+
+      if attach_evidence is None and link_evidence is None and attach_evidence_two is None:
+        await interaction.followup.send(content=f"<a:rejected:{denyEmojiID}> YOU MUST AT LEAST PROVIDE ONE EVIDENCE", ephemeral=True)
+        return
+
+      isvalid : bool = IsValidID(offenderID=offender_id)
+      if isvalid:
+        RBXProfile : str = GetProfileLink(offenderID=offender_id)
+
+        response: bool = await AddBan(
+          OffenderId=offender_id,
+          ModeratorId=interaction.user.id,
+          Type=ban_type.value,
+          Reason=ban_reason,
+          Duration=ban_duration
+        )
+
+        stat : str = ban_type.value + "Count"
+        isStaffRegistered, staffStat = await GetStaffStat(StaffID=interaction.user.id, Stat =stat)
+        isOffenderReg, offenderStat = await GetOffenderStat(OffenderID=offender_id, Stat = stat)
+
+        if isOffenderReg == False:
+          await RegisterOffender(OffenderID=offender_id)
+          await IncreaseOffenderStat(OffenderID=offender_id, Stat = stat)
+        else:
+          await IncreaseOffenderStat(OffenderID=offender_id, Stat = stat)
+
+        if isStaffRegistered == False:
+          await RegisterStaff(StaffID=interaction.user.id)
+          await IncreaseStaffStat(StaffID=interaction.user.id, Stat = stat)
+        else:
+          await IncreaseStaffStat(StaffID=interaction.user.id, Stat = stat)
+
+        if response == True:
+          log_channelId = int(os.getenv(key=ban_type.value + "logChannel"))
+          log_channel = self.bot.get_channel(log_channelId) or await self.bot.fetch_channel(log_channelId)
+
+          embed = discord.Embed(
+            title="🔨 RIG SHIFT BAN LOG",
+            description="A new ban log has been sent!",
+            color=discord.Color.red()
+          )
+
+          data = GetRBXUserData(offenderID=offender_id)
+          offender_name = data.get('name', 'Unknown') if isinstance(data, dict) else "Unknown"
+          offender_display = data.get('displayname', 'Unknown') if isinstance(data, dict) else "Unknown"
+          if offender_display == "Unknown":
+            embed.add_field(name="Offender Name", value=f"[{offender_name} @{offender_name}]({RBXProfile})")
+          else:
+            embed.add_field(name="Offender Name", value=f"[{offender_name} @{offender_display}]({RBXProfile})")
+          embed.add_field(name="Offender ID", value=f"`{offender_id}`", inline=True)
+          embed.add_field(name="Ban Type", value=ban_type.name, inline=True)
+          embed.add_field(name="Duration", value=ban_duration, inline=True)
+          embed.add_field(name="Reason", value=ban_reason, inline=False)
+
+          if attach_evidence:
+            embed.add_field(name="Evidence", value=attach_evidence.url, inline=False)
+          if attach_evidence_two:
+            embed.add_field(name="Second Evidence", value=attach_evidence_two.url, inline=False)
+          if link_evidence:
+            embed.add_field(name="Link evidence", value=link_evidence, inline=False)
+
+          embed.set_footer(text=f"Logged by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+
+          files = []
+
+          if attach_evidence:
+            if attach_evidence.content_type and attach_evidence.content_type.startswith("image/"):
+              embed.set_image(url=attach_evidence.url)
+            else:
+              files.append(await attach_evidence.to_file())
+
+          if attach_evidence_two:
+            if attach_evidence_two.content_type and attach_evidence_two.content_type.startswith("image/") and not embed.image:
+              embed.set_image(url=attach_evidence_two.url)
+            else:
+              files.append(await attach_evidence_two.to_file())
+
+          if files:
+            await log_channel.send(
+              content="<@1135915813346492468>",
+              embed=embed
+            )
+            await log_channel.send(files=files)
+          else:
+            await log_channel.send(
+              content="<@1135915813346492468>",
+              embed=embed
+            )
+
+          await interaction.followup.send(content=f"<a:approved:{approveEmojiID}> Success!", ephemeral=True)
+        else:
+          await interaction.followup.send(content="PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER!")
       else:
-        await log_channel.send(content=f"<@1135915813346492468>", embed=embed)
-        
-         
-      await interaction.followup.send(content=f"<a:approved:{approveEmojiID}> Success!", ephemeral=True)
-    else: 
-      await interaction.followup.send("PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER!")
+        await interaction.followup.send(content="PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER!")
 
-
+    except Exception as e:
+      print(f"BanLog Command Error: {e}")
+      await interaction.followup.send(content=f"<a:rejected:{denyEmojiID}> An error occurred while executing the command: `{e}`", ephemeral=True)
+      
   @BanLog.error
   async def OffenderBanStats_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.MissingAnyRole):

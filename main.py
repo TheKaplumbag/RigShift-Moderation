@@ -64,23 +64,22 @@ class Bot(commands.Bot):
 
 
   async def setup_hook(self):
-
     self.change_status.start()
-    
+
     await self.load_extension("Cogs.StaffCog")
     await self.load_extension("Cogs.OffenderCog")
 
-    
-    await self.tree.sync()
-    print("Synced global commands")
-    
-    if DEV_GUILD and DEV_GUILD.isdigit():
-      guild = discord.Object(id=int(DEV_GUILD))
-
-      self.tree.copy_global_to(guild=guild)
-      await self.tree.sync(guild=guild)
-      
-      print(f"Synced commands to DEV_GUILD={DEV_GUILD}")
+    try:
+      if DEV_GUILD and DEV_GUILD.isdigit():
+        guild = discord.Object(id=int(DEV_GUILD))
+        self.tree.copy_global_to(guild=guild)
+        await self.tree.sync(guild=guild)
+        print(f"Synced commands to DEV_GUILD={DEV_GUILD}")
+      else:
+        await self.tree.sync()
+        print("Synced global commands")
+    except discord.HTTPException as e:
+      print(f"Failed to sync commands: {e}")
 
   @change_status.before_loop
   async def before_change_status(self):

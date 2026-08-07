@@ -29,7 +29,7 @@ class OffenderCommands(commands.Cog):
     with sql.connect(database="RigShift.db") as con:
         cursor: Cursor = con.cursor()
         
-        # Filter choices based on user input and cap results at 25
+        
         cursor.execute(
             "SELECT RBXuserID FROM OffenderStats WHERE CAST(RBXuserID AS TEXT) LIKE ? LIMIT 25",
             (f"{current}%",)

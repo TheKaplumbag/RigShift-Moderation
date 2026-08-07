@@ -11,6 +11,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+denyEmojiID = BotEmojis.get("rejected")
+approveEmojiID = BotEmojis.get("approved")
+
 class OffenderCommands(commands.Cog):
   def __init__(self, bot: commands.Bot):
     self.bot = bot
@@ -72,9 +75,9 @@ class OffenderCommands(commands.Cog):
         await interaction.followup.send(f"Stats:\n\n {formatted}")
 
   @OffenderBanStats.error
-  async def OffenderBanStats_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+  async def OffenderBanStats_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.MissingAnyRole):
-      denyEmojiID = BotEmojis.get("rejected")
+        
       await interaction.response.send_message(
         f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
         ephemeral=True

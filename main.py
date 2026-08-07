@@ -54,7 +54,7 @@ class Bot(commands.Bot):
 
   
   
-  @tasks.loop(seconds=3.5)
+  @tasks.loop(seconds=2.5)
   async def change_status(self):
     new_status : str = random.choice(Status_list)
     await bot.change_presence(

@@ -9,6 +9,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+denyEmojiID = BotEmojis.get("rejected")
+approveEmojiID = BotEmojis.get("approved")
+
 class StaffCommands(commands.Cog):
   def __init__(self, bot: commands.Bot):
     self.bot = bot
@@ -17,7 +20,7 @@ class StaffCommands(commands.Cog):
 
   
   @staff_group.command(name="ban-log", description="Log ban")
-  @app_commands.checks.has_any_role(*TestServerRoles)
+  @app_commands.checks.has_any_role(*StaffRoles)
   @app_commands.checks.cooldown(rate=3, per=60.0, key=lambda i: i.user.id)
   @app_commands.choices(ban_type=[
     app_commands.Choice(name="Permanent", value="Permaban"),
@@ -35,7 +38,16 @@ class StaffCommands(commands.Cog):
     ban_duration: str = "N/A"
   ):
     await interaction.response.defer(thinking=True)
-    
+    if ban_type.value == "Tempban" and ban_duration == "N/A":
+       
+      await interaction.followup.send(f"<a:rejected:{denyEmojiID}> YOU CAN'T LOG Temporary Ban without specifying a duration!")
+      return
+      
+    if attach_evidence == None and link_evidence == None:
+       
+      await interaction.followup.send(f"<a:rejected:{denyEmojiID}> YOU MUST AT LEAST PROVIDE ONE EVIDENCE", ephemeral=True)
+      return
+      
     isvalid = IsValidID(offender_id)
     if isvalid:
       RBXProfile = GetProfileLink(offender_id)
@@ -48,7 +60,20 @@ class StaffCommands(commands.Cog):
         Reason=ban_reason, 
         Duration=ban_duration
       )
-      
+      stat : str = ban_type.value + "Count"
+      isStaffRegistered, staffStat = await GetStaffStat(interaction.user.id, stat)
+      isOffenderReg, offenderStat = await GetOffenderStat(offender_id, stat)
+      if isOffenderReg == False:
+        await RegisterOffender(offender_id)
+        await IncreaseOffenderStat(offender_id, stat)
+      else:
+        await IncreaseOffenderStat(offender_id, stat)
+      if isStaffRegistered == False:
+        await RegisterStaff(interaction.user.id)
+        await IncreaseStaffStat(interaction.user.id, stat)
+      else:
+        await IncreaseStaffStat(interaction.user.id, stat)
+
       if response == True:
         log_channelId = int(os.getenv(key=ban_type.value + "logChannel"))
         log_channel: TextChannel = self.bot.get_channel(log_channelId)
@@ -70,40 +95,24 @@ class StaffCommands(commands.Cog):
       if attach_evidence and attach_evidence.content_type and attach_evidence.content_type.startswith("image/"):
         embed.set_image(url=attach_evidence.url)
       
-        await log_channel.send(content="<@1135915813346492468> ", embed=embed)
+        await log_channel.send(content="<@1135915813346492468>", embed=embed)
       
       elif attach_evidence and attach_evidence.content_type and attach_evidence.content_type.startswith("video/"):
         videofile = await attach_evidence.to_file()
         await log_channel.send(content=f"<@1135915813346492468>", embed=embed)
         await log_channel.send(file=videofile)
       else:
-        await log_channel.send(content=f"<@1135915813346492468", embed=embed)
+        await log_channel.send(content=f"<@1135915813346492468>", embed=embed)
         
-
-      
-      stat : str = ban_type.value + "Count"
-      isStaffRegistered = await GetStaffStat(interaction.user.id, stat)
-      isOffenderReg = await GetOffenderStat(offender_id, stat)
-      if isOffenderReg == False:
-        await RegisterOffender(offender_id)
-        await IncreaseOffenderStat(offender_id, stat)
-      else:
-        await IncreaseOffenderStat(offender_id, stat)
-      if isStaffRegistered == False:
-        await RegisterStaff(interaction.user.id)
-        await IncreaseStaffStat(interaction.user.id, stat)
-      else:
-        await IncreaseStaffStat(interaction.user.id, stat)
-        
-      await interaction.followup.send(content=f"Success!", ephemeral=True)
+         
+      await interaction.followup.send(content=f"<a:approved:{approveEmojiID}> Success!", ephemeral=True)
     else: 
       await interaction.followup.send("PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER!")
 
 
   @BanLog.error
-  async def OffenderBanStats_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+  async def OffenderBanStats_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.MissingAnyRole):
-      denyEmojiID = BotEmojis.get("rejected")
       await interaction.response.send_message(
         f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
         ephemeral=True
@@ -116,7 +125,7 @@ class StaffCommands(commands.Cog):
     
 
   @staff_group.command(name="stats", description="check your ban stats")
-  @app_commands.checks.has_any_role(*TestServerRoles)
+  @app_commands.checks.has_any_role(*StaffRoles)
   @app_commands.checks.cooldown(rate=3, per=60.0, key=lambda i: i.user.id)
   @app_commands.choices(which_stat=[
     app_commands.Choice(name="Permanentban Count", value="PermabanCount"),
@@ -148,7 +157,7 @@ class StaffCommands(commands.Cog):
       await interaction.followup.send("This user does not have required staff roles.")
 
   @StaffBanStats.error
-  async def OffenderBanStats_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+  async def OffenderBanStats_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.MissingAnyRole):
       denyEmojiID: int = BotEmojis.get("rejected")
       await interaction.response.send_message(

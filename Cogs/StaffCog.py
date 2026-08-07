@@ -141,7 +141,7 @@ class StaffCommands(commands.Cog):
   ):
     await interaction.response.defer(thinking=True)
   
-    if who.top_role.id in TestServerRoles:
+    if who.top_role.id in StaffRoles:
       isRegistered, data = await GetStaffStat(StaffID=who.id, Stat=which_stat.value)
       formatted = ""
       if len(data) > 1:

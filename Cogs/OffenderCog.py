@@ -3,7 +3,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from Functions.Database import GetOffenderStat, RegisterOffender
-from config import StaffRoles, TestServerRoles
+from config import StaffRoles, TestServerRoles, BotEmojis
 from Functions.Utilities import IsValidID, GetProfileLink, GetRBXUserData
 import os
 import sqlite3 as sql
@@ -40,6 +40,7 @@ class OffenderCommands(commands.Cog):
 
   @offender_group.command(name="stats", description="check offenders ban stats")
   @app_commands.autocomplete(who=offender_autocomplete)
+  @app_commands.checks.cooldown(rate=3, per=60.0, key=lambda i: i.user.id)
   @app_commands.checks.has_any_role(*TestServerRoles)
   @app_commands.choices(which_stat=[
     app_commands.Choice(name="Permanentban Count", value="PermabanCount"),
@@ -69,6 +70,28 @@ class OffenderCommands(commands.Cog):
         await interaction.followup.send("Offender was not registered. Registered now, please run the command again!")
       else:
         await interaction.followup.send(f"Stats:\n\n {formatted}")
+
+  @OffenderBanStats.error
+  async def OffenderBanStats_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+  if isinstance(error, app_commands.MissingAnyRole):
+    denyEmojiID = BotEmojis.get("rejected")
+    await interaction.response.send_message(
+      f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
+      ephemeral=True
+    )
+  elif isinstance(error, app_commands.CommandOnCooldown):
+    await interaction.response.send_message(
+      f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+      ephemeral=True
+    )
+
+
+
+
+
+
+
+
 
 
 

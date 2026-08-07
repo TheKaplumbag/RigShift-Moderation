@@ -67,7 +67,7 @@ class OffenderCommands(commands.Cog):
       if len(data) > 1:
           formatted = f"Offender Name: {offender_data.get('name')}\n Temporaryban Count: {data[0]}\n Permanentban Count: {data[1]}\n Serverban Count: {data[2]}"
       else:
-        formatted = f"Offender Name: {offender_data.get("name")}\n  {which_stat.name}: {data[0]}"
+        formatted = f"Offender Name: {offender_data.get('name')}\n  {which_stat.name}: {data[0]}"
       if not isRegistered:
         await RegisterOffender(OffenderID=who)
         await interaction.followup.send("Offender was not registered. Registered now, please run the command again!")

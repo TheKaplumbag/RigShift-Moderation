@@ -3,6 +3,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 import os
+from config import Status_list
 import sqlite3 as sql
 import random
 
@@ -40,6 +41,7 @@ load_dotenv()
 TOKEN : str = os.getenv(key="BOT_TOKEN")
 DEV_GUILD : str = os.getenv(key="DEV_GUILD")
 PROXY : str = os.getenv("PROXY")
+
 class Bot(commands.Bot):
   def __init__(self):
     Intents = discord.Intents.all()
@@ -50,18 +52,11 @@ class Bot(commands.Bot):
     activity=discord.Game(name = "Staff tools") , proxy=PROXY)
 
 
-  Status_list = [
-    "🔨 Banning bad ppl!",
-    "👀 Big bro is ALWAYS watching",
-    "👨‍💼 Checking staff members!",
-    "📃 Logging bans!",
-    "🔥 Im the tuffest bot EVER!",
-    "I ❤️ Free Animate [BETA]"
-  ]
+  
   
   @tasks.loop(seconds=3.5)
   async def change_status(self):
-    new_status : str = random.choice(self.Status_list)
+    new_status : str = random.choice(Status_list)
     await bot.change_presence(
       status=discord.Status.online,
       activity=discord.CustomActivity(name=new_status),
@@ -73,6 +68,7 @@ class Bot(commands.Bot):
     self.change_status.start()
     
     await self.load_extension("Cogs.StaffCog")
+    await self.load_extension("Cogs.OffenderCog")
 
     
     await self.tree.sync()

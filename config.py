@@ -17,3 +17,14 @@ BotEmojis = {
   "grey": 1534951888506716270,
   "approved": 1534951853803044945
 }
+
+Status_list = [
+    "🔨 Banning bad ppl!",
+    "👀 Big bro is ALWAYS watching",
+    "👨‍💼 Checking staff members!",
+    "📃 Logging bans!",
+    "🔥 Im the tuffest bot EVER!",
+    "I ❤️ Free Animate [BETA]",
+    "✨ Thanks to Frisco for pfp",
+    "👁️ It's watching you"
+]

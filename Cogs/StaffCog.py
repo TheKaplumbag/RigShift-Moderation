@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from Functions.Database import AddBan,IncreaseStaffStat,RegisterStaff,GetStaffStat
+from Functions.Database import AddBan,IncreaseStaffStat,RegisterStaff,GetStaffStat, IncreaseOffenderStat, RegisterOffender, GetOffenderStat
 from config import StaffRoles, TestServerRoles
 from Functions.Utilities import IsValidID, GetProfileLink, GetRBXUserData
 import os
@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class MainCommands(commands.Cog):
+class StaffCommands(commands.Cog):
   def __init__(self, bot: commands.Bot):
     self.bot = bot
 
@@ -82,9 +82,17 @@ class MainCommands(commands.Cog):
 
       
       stat : str = ban_type.value + "Count"
-      isRegistered = await IncreaseStaffStat(interaction.user.id, stat)
-      if isRegistered == False:
+      isStaffRegistered = await GetStaffStat(interaction.user.id, stat)
+      isOffenderReg = await GetOffenderStat(offender_id, stat)
+      if isOffenderReg == False:
+        await RegisterOffender(offender_id)
+        await IncreaseOffenderStat(offender_id, stat)
+      else:
+        await IncreaseOffenderStat(offender_id, stat)
+      if isStaffRegistered == False:
         await RegisterStaff(interaction.user.id)
+        await IncreaseStaffStat(interaction.user.id, stat)
+      else:
         await IncreaseStaffStat(interaction.user.id, stat)
         
       await interaction.followup.send(content=f"Success!", ephemeral=True)
@@ -140,4 +148,4 @@ class MainCommands(commands.Cog):
 
 
 async def setup(bot: commands.Bot):
-  await bot.add_cog(MainCommands(bot))
+  await bot.add_cog(StaffCommands(bot))

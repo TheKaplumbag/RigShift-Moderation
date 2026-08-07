@@ -140,9 +140,9 @@ class StaffCommands(commands.Cog):
 
           await interaction.followup.send(content=f"<a:approved:{approveEmojiID}> Success!", ephemeral=True)
         else:
-          await interaction.followup.send(content="PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER!")
+          await interaction.followup.send(content="PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER!", ephemeral=True)
       else:
-        await interaction.followup.send(content="PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER!")
+        await interaction.followup.send(content="PROVIDED ID DOES NOT BELONG TO ANY ROBLOX USER! 2", ephemeral=True)
 
     except Exception as e:
       print(f"BanLog Command Error: {e}")

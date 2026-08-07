@@ -65,7 +65,7 @@ class OffenderCommands(commands.Cog):
       isRegistered, data = await GetOffenderStat(OffenderID=who, Stat=which_stat.value)
       formatted = ""
       if len(data) > 1:
-          formatted = f"Offender Name: {offender_data.get("name")}\n Temporaryban Count: {data[0]}\n Permanentban Count: {data[1]}\n Serverban Count: {data[2]} "
+          formatted = f"Offender Name: {offender_data.get('name')}\n Temporaryban Count: {data[0]}\n Permanentban Count: {data[1]}\n Serverban Count: {data[2]}"
       else:
         formatted = f"Offender Name: {offender_data.get("name")}\n  {which_stat.name}: {data[0]}"
       if not isRegistered:

@@ -102,17 +102,17 @@ class StaffCommands(commands.Cog):
 
   @BanLog.error
   async def OffenderBanStats_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
-  if isinstance(error, app_commands.MissingAnyRole):
-    denyEmojiID = BotEmojis.get("rejected")
-    await interaction.response.send_message(
-      f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
-      ephemeral=True
-    )
-  elif isinstance(error, app_commands.CommandOnCooldown):
-    await interaction.response.send_message(
-      f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
-      ephemeral=True
-    )
+    if isinstance(error, app_commands.MissingAnyRole):
+      denyEmojiID = BotEmojis.get("rejected")
+      await interaction.response.send_message(
+        f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
+        ephemeral=True
+      )
+    elif isinstance(error, app_commands.CommandOnCooldown):
+      await interaction.response.send_message(
+        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        ephemeral=True
+      )
     
 
   @staff_group.command(name="stats", description="check your ban stats")
@@ -149,17 +149,17 @@ class StaffCommands(commands.Cog):
 
   @StaffBanStats.error
   async def OffenderBanStats_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
-  if isinstance(error, app_commands.MissingAnyRole):
-    denyEmojiID: int = BotEmojis.get("rejected")
-    await interaction.response.send_message(
-      f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
-      ephemeral=True
-    )
-  elif isinstance(error, app_commands.CommandOnCooldown):
-    await interaction.response.send_message(
-      f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
-      ephemeral=True
-    )
+    if isinstance(error, app_commands.MissingAnyRole):
+      denyEmojiID: int = BotEmojis.get("rejected")
+      await interaction.response.send_message(
+        f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
+        ephemeral=True
+      )
+    elif isinstance(error, app_commands.CommandOnCooldown):
+      await interaction.response.send_message(
+        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        ephemeral=True
+      )
 
 
 

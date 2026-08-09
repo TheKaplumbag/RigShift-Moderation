@@ -61,9 +61,9 @@ class Bot(commands.Bot):
       await self.change_presence(
         status=discord.Status.online,
         activity=discord.CustomActivity(name=new_status)
+    )
     except Exception as e:
           print(f"EXPECTION: {e} ")
-    )
 
 
   async def setup_hook(self):

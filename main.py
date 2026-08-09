@@ -68,7 +68,7 @@ class Bot(commands.Bot):
 
     await self.load_extension("Cogs.StaffCog")
     await self.load_extension("Cogs.OffenderCog")
-    await self.load_extension("Cogs.AdminCog")
+    ##await self.load_extension("Cogs.AdminCog")
 
     try:
       if DEV_GUILD and DEV_GUILD.isdigit():

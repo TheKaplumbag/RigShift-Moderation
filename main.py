@@ -59,7 +59,7 @@ class Bot(commands.Bot):
     new_status : str = random.choice(Status_list)
     await self.change_presence(
       status=discord.Status.online,
-      activity=discord.CustomActivity(name=new_status),
+      activity=discord.CustomActivity(name=new_status)
     )
 
 

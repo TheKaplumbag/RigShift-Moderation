@@ -43,7 +43,19 @@ class AdminCommands(commands.Cog):
       await owner.send(f"{interaction.user.name} added 1 to {who.name}'s {stat_type.name}\n\n Server: {interaction.guild}")
     else:
       await interaction.followup.send("Faced with an error while increasing stat!")
-      
+
+  @Add_StaffStat.error
+  async def Add_StaffStat_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingAnyRole):
+      await interaction.response.send_message(
+        f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
+        ephemeral=True
+      )
+    elif isinstance(error, app_commands.CommandOnCooldown):
+      await interaction.response.send_message(
+        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        ephemeral=True
+      )
 
   @admin_group.command(name="remove-staffstat", description="remove stat from staff")
   @app_commands.checks.cooldown(rate=2, per=35.5, key=lambda i: i.user.id)
@@ -72,7 +84,19 @@ class AdminCommands(commands.Cog):
       await owner.send(f"{interaction.user.name} removed 1 from {who.name}'s {stat_type.name}\n\n Server: {interaction.guild}")
     else:
       await interaction.followup.send("Faced with an error while decreasing stat!")
-
+  @Remove_StaffStat.error
+  async def Remove_StaffStat_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingAnyRole):
+      await interaction.response.send_message(
+        f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
+        ephemeral=True
+      )
+    elif isinstance(error, app_commands.CommandOnCooldown):
+      await interaction.response.send_message(
+        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        ephemeral=True
+      )
+      
   # OFFENDER MANAGEMENT COMMANDS
   
   async def offender_autocomplete(
@@ -100,7 +124,6 @@ class AdminCommands(commands.Cog):
 
     return choices
 
-  
   @admin_group.command(name="add-offenderstat", description="add stat to offender")
   @app_commands.checks.cooldown(rate=2, per=35.5, key=lambda i: i.user.id)
   @app_commands.describe(
@@ -133,6 +156,19 @@ class AdminCommands(commands.Cog):
     else:
       await interaction.followup.send("Faced with an error while increasing stat!")
       
+  @Add_OffenderStat.error
+  async def Add_OffenderStat_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingAnyRole):
+      await interaction.response.send_message(
+        f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
+        ephemeral=True
+      )
+    elif isinstance(error, app_commands.CommandOnCooldown):
+      await interaction.response.send_message(
+        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        ephemeral=True
+      )  
+  
   @admin_group.command(name="remove-offenderstat", description="add stat to offender")
   @app_commands.checks.cooldown(rate=2, per=35.5, key=lambda i: i.user.id)
   @app_commands.describe(
@@ -164,8 +200,19 @@ class AdminCommands(commands.Cog):
       await owner.send(f"{interaction.user.name} removed 1 from {offenderRBXinfo.get("name")}'s {stat_type.name}\n Offender ID: `{who}` \n\n Server: {interaction.guild}")
     else:
       await interaction.followup.send("Faced with an error while increasing stat!")
-         
-  
+
+  @Remove_OffenderStat.error
+  async def Remove_OffenderStat_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.MissingAnyRole):
+      await interaction.response.send_message(
+        f"<a:rejected:{denyEmojiID}> You don't have the required roles to use this command.", 
+        ephemeral=True
+      )
+    elif isinstance(error, app_commands.CommandOnCooldown):
+      await interaction.response.send_message(
+        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        ephemeral=True
+      )
   
 
 

@@ -82,8 +82,9 @@ class Bot(commands.Bot):
       if DEV_GUILD and DEV_GUILD.isdigit():
         guild = discord.Object(id=int(DEV_GUILD))
         self.tree.copy_global_to(guild=guild)
-        await self.tree.sync(guild=guild)
+        await self.tree.sync()
         print(f"Synced commands to DEV_GUILD={DEV_GUILD}")
+        print("Synced global commands")
       else:
         await self.tree.sync()
         print("Synced global commands")

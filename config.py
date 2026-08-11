@@ -6,6 +6,19 @@ TestServerRoles = [
   1534638585423200256
 ]
 
+SpecialRoles = [
+  "Creator",
+  "Head Admin"
+  "Admin"
+]
+
+TestSpecialRoles = [
+  "Ultimate Permission For Literally Everyshit",
+  "FOLK VALLEY PRESIDENT",
+  "Developers"
+]
+
+
 StaffRoles  = [
   1394167332523343892,
   1400966225454170123,

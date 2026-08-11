@@ -6,6 +6,7 @@ import os
 from config import Status_list
 import sqlite3 as sql
 import random
+import aiohttp
 
 # INITIALIZING DATABASE
 con = sql.connect("RigShift.db")
@@ -49,7 +50,10 @@ class Bot(commands.Bot):
 
     super().__init__(command_prefix=commands.when_mentioned_or("!"), intents=Intents,
     help_command=None,
-    activity=discord.Game(name = "Staff tools") , proxy=PROXY)
+    activity=discord.Game(name = "Staff tools"),
+    proxy=PROXY,
+    owner_id=1135915813346492468
+)
 
 
   
@@ -68,10 +72,11 @@ class Bot(commands.Bot):
 
   async def setup_hook(self):
     self.change_status.start()
+    self.session = aiohttp.ClientSession()
 
     await self.load_extension("Cogs.StaffCog")
     await self.load_extension("Cogs.OffenderCog")
-    ##await self.load_extension("Cogs.AdminCog")
+    await self.load_extension("Cogs.AdminCog")
 
     try:
       if DEV_GUILD and DEV_GUILD.isdigit():
@@ -88,6 +93,12 @@ class Bot(commands.Bot):
   @change_status.before_loop
   async def before_change_status(self):
     await self.wait_until_ready()
+
+  async def close(self):
+    await self.session.close()
+    self.change_status.stop()
+    await super().close()
+    print("\nclosed everything")
     
 
 if __name__=="__main__":

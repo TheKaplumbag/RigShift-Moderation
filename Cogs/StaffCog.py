@@ -2,9 +2,10 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from Functions.Database import AddBan,IncreaseStaffStat,RegisterStaff,GetStaffStat, IncreaseOffenderStat, RegisterOffender, GetOffenderStat
-from config import TestServerRoles, StaffRoles, BotEmojis
+from config import StaffRoles, BotEmojis
 from Functions.Utilities import IsValidID, GetProfileLink, GetRBXUserData
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,7 +30,8 @@ class StaffCommands(commands.Cog):
   ])
   @app_commands.describe(
     ban_duration = "Duration of ban",
-    
+    offender_id = "Roblox ID of offender",
+    ticket_number = "Enter the ticket number leave if its not from ticket"
   )
   async def BanLog(
     self,
@@ -38,6 +40,7 @@ class StaffCommands(commands.Cog):
     ban_type: app_commands.Choice[str],
     ban_reason: str,
     ban_duration: str = "N/A",
+    ticket_number: str = "N/A",
     attach_evidence: discord.Attachment = None,
     attach_evidence_two: discord.Attachment = None,
     link_evidence: str = None
@@ -53,9 +56,9 @@ class StaffCommands(commands.Cog):
         await interaction.followup.send(content=f"<a:rejected:{denyEmojiID}> YOU MUST AT LEAST PROVIDE ONE EVIDENCE", ephemeral=True)
         return
 
-      isvalid : bool = IsValidID(offenderID=offender_id)
+      isvalid : bool = await IsValidID(offenderID=offender_id, session=self.bot.session)
       if isvalid:
-        RBXProfile : str = GetProfileLink(offenderID=offender_id)
+        RBXProfile : str = await GetProfileLink(offenderID=offender_id, session=self.bot.session)
 
         response: bool = await AddBan(
           OffenderId=offender_id,
@@ -88,10 +91,11 @@ class StaffCommands(commands.Cog):
           embed = discord.Embed(
             title="🔨 RIG SHIFT BAN LOG",
             description="A new ban log has been sent!",
-            color=discord.Color.red()
+            color=discord.Color.red(),
+            timestamp= datetime.now()
           )
 
-          data = GetRBXUserData(offenderID=offender_id)
+          data = await GetRBXUserData(offenderID=offender_id, session=self.bot.session)
           offender_name = data.get('name', 'Unknown') if isinstance(data, dict) else "Unknown"
           offender_display = data.get('displayname', 'Unknown') if isinstance(data, dict) else "Unknown"
           if offender_display == "Unknown":
@@ -100,6 +104,10 @@ class StaffCommands(commands.Cog):
             embed.add_field(name="Offender Name", value=f"[{offender_name} @{offender_display}]({RBXProfile})")
           embed.add_field(name="Offender ID", value=f"`{offender_id}`", inline=True)
           embed.add_field(name="Ban Type", value=ban_type.name, inline=True)
+          if ticket_number == "N/A":
+            embed.add_field(name="Ticket Number", value=f"{ticket_number}", inline=True)
+          else:
+            embed.add_field(name="Ticket Number", value=f"Ticket-{ticket_number}", inline=True)
           embed.add_field(name="Duration", value=ban_duration, inline=True)
           embed.add_field(name="Reason", value=ban_reason, inline=False)
 
@@ -111,6 +119,7 @@ class StaffCommands(commands.Cog):
             embed.add_field(name="Link evidence", value=link_evidence, inline=False)
 
           embed.set_footer(text=f"Logged by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+
 
           files = []
 

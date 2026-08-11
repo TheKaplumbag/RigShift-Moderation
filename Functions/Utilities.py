@@ -1,28 +1,47 @@
-import requests
-import json
+from typing import Any
+import aiohttp
 
-def IsValidID(offenderID: int) -> bool:
+async def IsValidID(offenderID, session=None) -> bool:
   RBXapi = f"https://users.roblox.com/v1/users/{offenderID}"
-  response = requests.get(RBXapi)
-  if response.status_code == 200:
-    return True
-  else:
-    return False
+  
+  close_session = False
+  if session is None:
+    session = aiohttp.ClientSession()
+    close_session = True
+      
+  try:
+    async with session.get(RBXapi) as response:
+      return response.status == 200
+      
+  finally:
+    if close_session:
+      await session.close()
 
-def GetRBXUserData(offenderID: int) -> bool:
+
+async def GetRBXUserData(offenderID, session=None) -> dict[str, Any]:
   RBXapi = f"https://users.roblox.com/v1/users/{offenderID}"
-  response = requests.get(RBXapi)
-  if response.status_code == 200:
-    data = response.json()
-    return data
-  else:
-    return False 
+  
+  close_session = False
+  if session is None:
+    session = aiohttp.ClientSession()
+    close_session = True
+      
+  try:
+    async with session.get(RBXapi) as response:
+      if response.status == 200:
+        data = await response.json()
+        return data
+      return False
+  finally:
+    if close_session:
+      await session.close()
 
 
-def GetProfileLink(offenderID: int) -> str:
-  isValid = IsValidID(offenderID=offenderID)
+async def GetProfileLink(offenderID, session=None) -> str:
+  isValid = await IsValidID(offenderID=offenderID, session=session)
+  
   if isValid:
-    RBXprofileLink = f"https://roblox.com/users/{offenderID}/profile"
+    RBXprofileLink = f"https://www.roblox.com/users/{offenderID}/profile"
     return RBXprofileLink
   else:
     return f"**{offenderID}** is NOT valid roblox user!"

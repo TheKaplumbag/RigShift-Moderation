@@ -1,4 +1,3 @@
-from aiohttp.log import internal_logger
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -44,7 +43,7 @@ class OffenderCommands(commands.Cog):
   @offender_group.command(name="stats", description="check offenders ban stats")
   @app_commands.autocomplete(who=offender_autocomplete)
   @app_commands.checks.cooldown(rate=3, per=60.0, key=lambda i: i.user.id)
-  @app_commands.checks.has_any_role(*TestServerRoles)
+  @app_commands.checks.has_any_role(*StaffRoles)
   @app_commands.choices(which_stat=[
     app_commands.Choice(name="Permanentban Count", value="PermabanCount"),
     app_commands.Choice(name="Temporaryban Count", value="TempbanCount"),
@@ -58,10 +57,11 @@ class OffenderCommands(commands.Cog):
     which_stat: app_commands.Choice[str]
   ):
     await interaction.response.defer(thinking=True)
-    if IsValidID(who) == False:
+    IsValidRBXID = await IsValidID(who, session=self.bot.session)
+    if IsValidRBXID== False:
       return 0
     else:
-      offender_data = GetRBXUserData(who)
+      offender_data = await GetRBXUserData(who, session=self.bot.session)
       isRegistered, data = await GetOffenderStat(OffenderID=who, Stat=which_stat.value)
       formatted = ""
       if len(data) > 1:

@@ -8,7 +8,7 @@ TestServerRoles = [
 
 SpecialRoles = [
   "Creator",
-  "Head Admin"
+  "Head Admin",
   "Admin"
 ]
 

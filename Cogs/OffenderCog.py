@@ -12,6 +12,7 @@ load_dotenv()
 
 denyEmojiID = BotEmojis.get("rejected")
 approveEmojiID = BotEmojis.get("approved")
+loadingID = BotEmojis.get("loading")
 
 class OffenderCommands(commands.Cog):
   def __init__(self, bot: commands.Bot):
@@ -84,7 +85,7 @@ class OffenderCommands(commands.Cog):
       )
     elif isinstance(error, app_commands.CommandOnCooldown):
       await interaction.response.send_message(
-        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        f"<a:loading:{loadingID}> Please wait {error.retry_after:.1f} seconds before using this command again.", 
         ephemeral=True
       )
 

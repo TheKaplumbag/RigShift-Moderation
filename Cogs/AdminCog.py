@@ -40,6 +40,7 @@ class AdminCommands(commands.Cog):
     success = await IncreaseStaffStat(who.id, stat_type.value)
     if success:
       await interaction.followup.send(content=f"<a:approved:{approveID}> successfully added **1** to **{who}**'s **{stat_type.name}**!")
+      await who.send(f"{interaction.user.name} added 1 to your {stat_type.name}\n\n Server: {interaction.guild}")
       owner= await self.bot.fetch_user(self.bot.owner_id)
       await owner.send(f"{interaction.user.name} added 1 to {who.name}'s {stat_type.name}\n\n Server: {interaction.guild}")
     else:
@@ -81,6 +82,7 @@ class AdminCommands(commands.Cog):
     success = await DecreaseStaffStat(who.id, stat_type.value)
     if success:
       await interaction.followup.send(content=f"<a:approved:{approveID}> successfully removed **1** from **{who}**'s **{stat_type.name}**!")
+      await who.send(f"{interaction.user.name} removed 1 from your {stat_type.name}\n\n Server: {interaction.guild}")
       owner= await self.bot.fetch_user(self.bot.owner_id)
       await owner.send(f"{interaction.user.name} removed 1 from {who.name}'s {stat_type.name}\n\n Server: {interaction.guild}")
     else:

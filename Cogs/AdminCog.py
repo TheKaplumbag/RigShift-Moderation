@@ -1,6 +1,6 @@
 import discord
 import sqlite3 as sql
-from discord import app_commands
+from discord import app_commands, Webhook
 from discord.ext import commands
 from Functions.Database import AddBan,IncreaseStaffStat,DecreaseStaffStat,RegisterStaff,GetStaffStat, IncreaseOffenderStat,DecreaseOffenderStat, RegisterOffender, GetOffenderStat
 from config import TestSpecialRoles, SpecialRoles, BotEmojis, TestServerRoles, StaffRoles
@@ -8,6 +8,7 @@ from Functions.Utilities import IsValidID, GetProfileLink, GetRBXUserData
 
 approveID = BotEmojis.get("approved")
 rejectID = BotEmojis.get("rejected")
+loadingID = BotEmojis.get("loading")
 
 class AdminCommands(commands.Cog):
   def __init__(self, bot: commands.Bot):
@@ -53,7 +54,7 @@ class AdminCommands(commands.Cog):
       )
     elif isinstance(error, app_commands.CommandOnCooldown):
       await interaction.response.send_message(
-        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        f"<a:loading:{loadingID}> Please wait {error.retry_after:.1f} seconds before using this command again.", 
         ephemeral=True
       )
 
@@ -93,7 +94,7 @@ class AdminCommands(commands.Cog):
       )
     elif isinstance(error, app_commands.CommandOnCooldown):
       await interaction.response.send_message(
-        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        f"<a:loading:{loadingID}> Please wait {error.retry_after:.1f} seconds before using this command again.", 
         ephemeral=True
       )
       
@@ -146,7 +147,8 @@ class AdminCommands(commands.Cog):
     offenderRBXinfo = await GetRBXUserData(who, self.bot.session)
     isReg, data = await GetOffenderStat(who, "*")
     if isReg == False:
-      await interaction.followup.send(f"<a:rejected:{rejectID}> Offender is not registered!", ephemeral=True)
+      await interaction.followup.send(f"<a:rejected:{rejectID}> Offender wasn't registered but its registeed now run the comman again!", ephemeral=True)
+      await RegisterOffender(who)
       return
     success = await IncreaseOffenderStat(who, stat_type.value)
     if success:
@@ -165,7 +167,7 @@ class AdminCommands(commands.Cog):
       )
     elif isinstance(error, app_commands.CommandOnCooldown):
       await interaction.response.send_message(
-        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        f"<a:loading:{loadingID}> Please wait {error.retry_after:.1f} seconds before using this command again.", 
         ephemeral=True
       )  
   
@@ -210,7 +212,7 @@ class AdminCommands(commands.Cog):
       )
     elif isinstance(error, app_commands.CommandOnCooldown):
       await interaction.response.send_message(
-        f"⏳ Please wait {error.retry_after:.1f} seconds before using this command again.", 
+        f"<a:loading:{loadingID}> Please wait {error.retry_after:.1f} seconds before using this command again.", 
         ephemeral=True
       )
   
